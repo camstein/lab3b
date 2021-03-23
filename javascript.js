@@ -13,7 +13,7 @@ var drawnItems = L.featureGroup().addTo(map);
 var cartoData = L.layerGroup().addTo(map);
 var url = "https://camstein.carto.com/api/v2/sql";
 var urlGeoJSON = url + "?format=GeoJSON&q=";
-var sqlQuery = "SELECT the_geom, description, name FROM lab_3b_cameron";
+var sqlQuery = "SELECT the_geom, description, name FROM lab_3c_cameron";
 function addPopup(feature, layer) {
     layer.bindPopup(
         "<b>" + feature.properties.name + "</b><br>" +
@@ -80,7 +80,7 @@ function setData(e) {
     			// Create SQL expression to insert layer
                 var drawing = JSON.stringify(layer.toGeoJSON().geometry);
                 var sql =
-                    "INSERT INTO lab_3b_cameron (the_geom, name, description) " +
+                    "INSERT INTO lab_3c_cameron (the_geom, name, description) " +
                     "VALUES (ST_SetSRID(ST_GeomFromGeoJSON('" +
                     drawing + "'), 4326), '" +
                     enteredUsername + "', '" +
