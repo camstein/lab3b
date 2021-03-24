@@ -13,11 +13,12 @@ var drawnItems = L.featureGroup().addTo(map);
 var cartoData = L.layerGroup().addTo(map);
 var url = "https://camstein.carto.com/api/v2/sql";
 var urlGeoJSON = url + "?format=GeoJSON&q=";
-var sqlQuery = "SELECT the_geom, description, name FROM lab_3c_cameron";
+var sqlQuery = "SELECT the_geom, input_name, input_like, input_beverage FROM lab_3c_cameron";
 function addPopup(feature, layer) {
     layer.bindPopup(
-        "<b>" + feature.properties.name + "</b><br>" +
-        feature.properties.description
+        "<b>" + feature.properties.input_name + "</b><br>" +
+        feature.properties.input_like + "</b><br>" +
+        feature.properties.input_beverage
     );
 }
 
@@ -54,8 +55,13 @@ map.addEventListener("draw:created", function(e) {
 function createFormPopup() {
     var popupContent =
         '<form>' +
-        'Name:<br><input type="text" id="input_name"><br>' +
-        'Description:<br><input type="text" id="input_desc"><br>' +
+        '<br>Name of Establishment:<br><input type="text" id="input_name"><br><br>' +
+        ' Do you like this Establishment:<br>' +
+        '<input type="radio" id="input_yes" name="like" value="Yes">' +
+          '<label for="yes">Yes</label><br>' +
+        '<input type="radio" id="input_no" name="like" value="No">' +
+          '<label for="no">No</label><br>' +
+        '<br>Favorite Beverage:<br><input type="text" id="input_beverage"><br><br> ' +
         '<input type="button" value="Submit" id="submit">' +
         '</form>'
     drawnItems.bindPopup(popupContent).openPopup();
@@ -71,8 +77,9 @@ function setData(e) {
     if(e.target && e.target.id == "submit") {
 
         // Get user name and description
-        var enteredUsername = document.getElementById("input_name").value;
-        var enteredDescription = document.getElementById("input_desc").value;
+        var enteredName = document.getElementById("input_name").value;
+        var enteredYesNo = $("input[type=radio][name=like]:checked").val();
+        var enteredBeverage = document.getElementById("input_beverage").value;
 
         // For each drawn layer
         drawnItems.eachLayer(function(layer) {
@@ -80,11 +87,12 @@ function setData(e) {
     			// Create SQL expression to insert layer
                 var drawing = JSON.stringify(layer.toGeoJSON().geometry);
                 var sql =
-                    "INSERT INTO lab_3c_cameron (the_geom, name, description) " +
+                    "INSERT INTO lab_3c_cameron (the_geom, input_name, input_like, input_beverage) " +
                     "VALUES (ST_SetSRID(ST_GeomFromGeoJSON('" +
                     drawing + "'), 4326), '" +
-                    enteredUsername + "', '" +
-                    enteredDescription + "')";
+                    enteredName + "', '" +
+                    enteredYesNo + "', '" +
+                    enteredBeverage + "')";
                 console.log(sql);
 
                 // Send the data
@@ -103,13 +111,14 @@ function setData(e) {
                 })
                 .catch(function(error) {
                     console.log("Problem saving the data:", error);
-                });
+                })
 
             // Transfer submitted drawing to the CARTO layer
             //so it persists on the map without you having to refresh the page
             var newData = layer.toGeoJSON();
-            newData.properties.description = enteredDescription;
-            newData.properties.name = enteredUsername;
+            newData.properties.input_beverage = enteredBeverage;
+            newData.properties.input_like = enteredYesNo;
+            newData.properties.input_name = enteredName;
             L.geoJSON(newData, {onEachFeature: addPopup}).addTo(cartoData);
 
         });
